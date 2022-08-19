@@ -1,0 +1,99 @@
+---
+title: "README"
+author: "ojcharles"
+date: "19/08/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+
+#odejunkfitr
+
+A R package to assess whether your ode model is over-parameterised and will fit any number of distributions. 
+
+In viral kinetic modelling often there are two competeing ideas. 1 - I care about uncovering specific mechanistic insights so  my model should represent the biology as accurately as possible. 2 - I can only measure 1 or two copartments, therefore my model should be as simple as possible to allow me to measure the single key parameter I care about.
+
+This package helps you understand with tangable outcomes where your model lies on that spectrum. It does this by fitting against a number of datasets from simple proability distributins to real published viral kinetic data.
+
+
+
+
+```{r setup, echo = F}
+## Load libraries
+library(ggplot2)
+library(nlmixr)
+library(xpose)
+library(xpose.nlmixr)
+library(plotly)
+library(odejunkfitr)
+odejunkfitr::load_examples()
+
+```
+
+## Including Plots
+
+This package takes as input a nlmixr formatted model string.
+
+```{r pressure, echo=FALSE}
+model1_theo_sd <<- "function() {
+  ini({
+    tka <- 0.45
+    tcl <- log(c(0, 2.7, 100))
+    tv <- 3.45
+    eta.ka ~ 0.6
+    eta.cl ~ 0.3
+    eta.v ~ 0.1
+    add.sd <- 0.7
+  })
+  model({
+    ka <- exp(tka + eta.ka)
+    cl <- exp(tcl + eta.cl)
+    v <- exp(tv + eta.v)
+    linCmt() ~ add(add.sd)
+  })
+}"
+
+# convert to function
+ode_function = ode_string_to_function(model1_theo_sd)
+
+# check model compiles with nlmixr
+does_model_compile(ode_function)
+```
+
+
+## fit model to nlmixr typical data
+
+
+
+```{r}
+fit = nlmixr(ode_function, data1_theo_sd, list(print=0), est="saem") # works
+
+print(paste0("fit AIC is:", fit$AIC))
+```
+
+
+## fit model to lots of spurious data "junk"
+
+this will throw more warnings that a typical fit, and will take longer as this data is so "whack".
+
+
+```{r}
+data_junk = read.csv("inst/junk.csv")
+fit = nlmixr(ode_function, data_junk, list(print=0), est="saem") # works
+
+print(paste0("fit AIC is:", fit$AIC))
+```
+
+## visualise how well my model fits junk
+
+```{r}
+plot(fit)
+
+```
+
+
