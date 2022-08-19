@@ -2,24 +2,24 @@
 title: "README"
 author: "ojcharles"
 date: "19/08/2022"
-output: html_document
+output: github_document
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
-```
-
-
 
 #odejunkfitr
 
 A R package to assess whether your ode model is over-parameterised and will fit any number of distributions. 
 
-In viral kinetic modelling often there are two competeing ideas. 1 - I care about uncovering specific mechanistic insights so  my model should represent the biology as accurately as possible. 2 - I can only measure 1 or two copartments, therefore my model should be as simple as possible to allow me to measure the single key parameter I care about.
+In viral kinetic modelling often there are two competing ideas. 1 - I care about uncovering specific mechanistic insights so  my model should represent the biology as accurately as possible. 2 - I can only measure 1 or two compartments, therefore my model should be as simple as possible to allow me to measure the single key parameter I care about.
 
-This package helps you understand with tangable outcomes where your model lies on that spectrum. It does this by fitting against a number of datasets from simple proability distributins to real published viral kinetic data.
+This package helps you understand with tangible outcomes where your model lies on that spectrum. It does this by fitting against a number of datasets from simple probability distributions to real published viral kinetic data.
 
+install with:
+`remotes::install_github("ojcharles/does_my_ode_model_fit_junk")`
+
+
+
+
+## Core usage
 
 
 
@@ -35,11 +35,10 @@ odejunkfitr::load_examples()
 
 ```
 
-## Including Plots
 
 This package takes as input a nlmixr formatted model string.
 
-```{r pressure, echo=FALSE}
+```{r load_mod, echo=FALSE}
 model1_theo_sd <<- "function() {
   ini({
     tka <- 0.45
