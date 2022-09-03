@@ -13,10 +13,10 @@ In viral kinetic modelling often there are two competing ideas. 1 - I care about
 
 This package helps you understand with tangible outcomes where your model lies on that spectrum. It does this by fitting against a number of datasets from simple probability distributions to real published viral kinetic data.
 
+The package will also fit your data against several previously published 2, 3 and 4 compartment models that prioritised brevity and identifieability of parameters.
+
 install with:
 `remotes::install_github("ojcharles/does_my_ode_model_fit_junk")`
-
-
 
 
 ## Core usage
@@ -26,9 +26,8 @@ install with:
 ```{r setup, echo = F}
 ## Load libraries
 library(ggplot2)
-library(nlmixr)
+library(nlmixr2)
 library(xpose)
-library(xpose.nlmixr)
 library(plotly)
 library(odejunkfitr)
 odejunkfitr::load_examples()
@@ -39,7 +38,7 @@ odejunkfitr::load_examples()
 This package takes as input a nlmixr formatted model string.
 
 ```{r load_mod, echo=FALSE}
-model1_theo_sd <<- "function() {
+model1_theo_sd = "function() {
   ini({
     tka <- 0.45
     tcl <- log(c(0, 2.7, 100))
@@ -65,34 +64,148 @@ does_model_compile(ode_function)
 ```
 
 
-## fit model to nlmixr typical data
-
+### fit model to nlmixr typical data
 
 
 ```{r}
-fit = nlmixr(ode_function, data1_theo_sd, list(print=0), est="saem") # works
+fit = nlmixr(ode_function, data1_theo_sd, list(print=0), est="saem")
 
 print(paste0("fit AIC is:", fit$AIC))
 ```
 
 
-## fit model to lots of spurious data "junk"
+### how well does my model fit spurious "junk"?
 
-this will throw more warnings that a typical fit, and will take longer as this data is so "whack".
+If the model is capable of fitting all of these trajectories, then you should look in the mirror and contemplate.
 
+#### At the population level
 
 ```{r}
 data_junk = read.csv("inst/junk.csv")
-fit = nlmixr(ode_function, data_junk, list(print=0), est="saem") # works
+fit = nlmixr(ode_function, data_junk, list(print=0), est="saem")
 
-print(paste0("fit AIC is:", fit$AIC))
+plot(fit)
 ```
 
-## visualise how well my model fits junk
+### visualise how well my model fits junk
 
 ```{r}
-plot(fit)
+
+all_fits = data.frame()
+for(id in unique(data_junk$ID)){ # for each type of test data
+  
+  # spoof a population
+  t = data_junk[data_junk$ID == id,]
+  df2 = t
+  for(i in 1:8){
+    t1 = t
+    t1$ID = i + 1
+    t1$DV = t1$DV + rnorm(length(t1$DV), 0, 0.1)
+    df2 = rbind(df2,t1)
+  }
+  
+  # get fit
+  fit = nlmixr(ode_function, df2, list(print=0), est="saem")
+  fit$junk_id = id
+  all_fits =  rbind(all_fits, fit)
+}
+  # plot
+ggplot(all_fits) +
+  geom_point(aes(x = TIME , y = DV)) +
+  geom_line(aes(x = TIME, y = IPRED, colour = ID)) +
+  theme_classic() +
+  labs(subtitle = "Fit of your model to spurious trajectories, per trajectory fit",
+       colour = "simulated individual") +
+  facet_wrap(~junk_id, scales = "free")
 
 ```
 
+
+ ahh but the dynamics i care about are much faster / shorter!   Well then alter the junk data, they're all nicely scaled :)
+ 
+ 
+```{r}
+data_junk$TIME = data_junk$TIME * 5 # 2 months now
+all_fits = data.frame()
+for(id in unique(data_junk$ID)){ # for each type of test data
+  
+  # spoof a population
+  t = data_junk[data_junk$ID == id,]
+  df2 = t
+  for(i in 1:8){
+    t1 = t
+    t1$ID = i + 1
+    t1$DV = t1$DV + rnorm(length(t1$DV), 0, 0.1)
+    df2 = rbind(df2,t1)
+  }
+  
+  # get fit
+  fit = nlmixr(ode_function, df2, list(print=0), est="saem")
+  fit$junk_id = id
+  all_fits =  rbind(all_fits, fit)
+}
+  # plot
+ggplot(all_fits) +
+  geom_point(aes(x = TIME , y = DV)) +
+  geom_line(aes(x = TIME, y = IPRED, colour = ID)) +
+  theme_classic() +
+  labs(subtitle = "Fit of your model to spurious trajectories, per trajectory fit",
+       colour = "simulated individual") +
+  facet_wrap(~junk_id, scales = "free") 
+
+
+```
+
+
+
+#### how can I rectify this?
+
+well why not try a simpler model?
+
+The below chunk is compute intensive and is skipped in this example, it's outcomes have been precomputed and are shown below.
+
+
+```{r, eval=F}
+
+# load model building functions
+source(system.file("viral_models.r", package = "odejunkfitr"))
+
+# load the modelling options to run
+model_handler = read.csv(system.file("all_vk_models.csv", package = "odejunkfitr"))
+model_handler$shortname = ""
+
+model_handler$AIC =0
+for(i in 1:nrow(model_handler)){
+  # slightly verbose here as we want to scale
+  #model_name = "SMEIMCs9"
+  model_name = model_handler[i,1]
+  model_handler$shortname[i] = paste0(model_handler[i,2:6],collapse = "")
+  
+  model_function = get(model_name)
+  model_string = model_function(model_handler[i,2],
+                                model_handler[i,3],
+                                model_handler[i,4],
+                                model_handler[i,5],
+                                model_handler[i,6])
+  ode_function = ode_string_to_function(model_string)
+  fit = suppressWarnings(suppressMessages(
+    nlmixr(ode_function,
+               data2_cmv_untreated,
+               list(print=0), est="saem")
+  ))
+  #print(paste0("AIC:", fit$AIC, " - Model:", model_name, " - Fixed vector:", paste0(model_handler[i,2:6],collapse = "")))
+  model_handler$AIC[i] = round(fit$AIC,2)
+}
+rm("fit")
+
+
+```
+
+
+```{r}
+# precomputed AIC comparison
+df = read.csv(system.file("all_vk_models_precomputed.csv", package = "odejunkfitr"))
+df
+
+```
 

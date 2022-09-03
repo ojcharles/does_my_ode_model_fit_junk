@@ -2,10 +2,12 @@
 #'
 #' @return data and models to global env
 #' @export
-
+#' 
 load_examples = function(){
   ##### data
-  data1_theo_sd <<- nlmixr::theo_sd
+  data1_theo_sd <<- nlmixr2data::theo_sd
+  
+  data2_cmv_untreated <<-  read.csv("inst/2020_duke_viral.csv")
   
   
   ##### models
