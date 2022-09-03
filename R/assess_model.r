@@ -9,7 +9,7 @@
 does_model_compile = function(ode_function){
   x <- tryCatch(
     {
-      b = nlmixr::nlmixr(ode_function)
+      b = nlmixr2::nlmixr(ode_function)
     },
     error = function(e){
       return("error")
