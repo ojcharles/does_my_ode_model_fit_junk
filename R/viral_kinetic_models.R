@@ -211,7 +211,6 @@ m3_EDICwTCL = function(fix_dE = F, fix_E_v = F, fix_dI = F, ...){
   }
   return(m)
 }
-#suppressWarnings(nlmixr(object = eval(parse( text = paste(text = EDICwTCL3(T,T,T)))), vl_df, list(print=0), est = "saem"))
 
 #' m4_EDICwTCL
 #' @return VK nlmixr function string
@@ -268,7 +267,6 @@ m4_EDICwTCL = function(fix_dE = F, fix_E_v = F, ...){
   }
   return(m)
 }
-#suppressWarnings(nlmixr(object = eval(parse( text = paste(text = EDICwTCL4(T,T)))), vl_df, list(print=0), est = "saem"))
 
 #' m5_EDICwTCL
 #' @return VK nlmixr function string
@@ -322,7 +320,6 @@ m5_EDICwTCL = function(fix_dE = F, fix_E_v = F, ...){
   }
   return(m)
 }
-#suppressWarnings(nlmixr(object = eval(parse( text = paste(text = EDICwTCL5(T,T)))), vl_df, list(print=0), est = "saem"))
 
 #' m6_EDICwTCL
 #' @return VK nlmixr function string
@@ -386,7 +383,6 @@ m6_EDICwTCL = function(fix_dI = F, fix_dE = F, fix_E_v = F, fix_V_v = F, ...){
   }
   return(m)
 }
-#suppressWarnings(nlmixr(object = eval(parse( text = paste(text = EDICwTCL6(T,T,T,T)))), vl_df, list(print=0), est = "saem"))
 
 
 
@@ -446,7 +442,6 @@ m7_SMEIMCs = function(fix_E0 = T, fix_dE = T, ...){
   }
   return(m)
 }
-#suppressWarnings(nlmixr(object = eval(parse( text = paste(text = SMEIMCs7(T,T)))), vl_df, list(print=0), est = "saem"))
 
 #' m8_SMEIMCs
 #' @return VK nlmixr function string
@@ -493,7 +488,6 @@ m8_SMEIMCs = function(fix_E0 = T, ...){
   }
   return(m)
 }
-#suppressWarnings(nlmixr(object = eval(parse( text = paste(text = SMEIMCs8(T)))), vl_df, list(print=0), est = "saem"))
 
 #' m9_SMEIMCs
 #' @return VK nlmixr function string
@@ -539,5 +533,4 @@ m9_SMEIMCs = function(fix_E0 = T, ...){
   }
   return(m)
 }
-#suppressWarnings(nlmixr(object = eval(parse( text = paste(text = SMEIMCs9(T)))), vl_df, list(print=0), est = "saem"))
 
