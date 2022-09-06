@@ -4,12 +4,15 @@
 #' @export
 #' 
 load_examples = function(){
+
   ##### data
   data1_theo_sd <<- nlmixr2data::theo_sd
   
-  data2_cmv_untreated <<-  read.csv("inst/2020_duke_viral.csv")
+  data2_cmv_untreated <<-  read.csv( system.file("2020_duke_viral.csv",package = "odejunkfitr") )
   
+  data3_junk <<- read.csv( system.file("junk.csv",package = "odejunkfitr") )
   
+
   ##### models
   model1_theo_sd <<- "function() {
   ini({

@@ -2,4 +2,13 @@
 
 export(does_model_compile)
 export(load_examples)
+export(m1_MwTCLESIC)
+export(m2_MwTCLEDIS)
+export(m3_EDICwTCL)
+export(m4_EDICwTCL)
+export(m5_EDICwTCL)
+export(m6_EDICwTCL)
+export(m7_SMEIMCs)
+export(m8_SMEIMCs)
+export(m9_SMEIMCs)
 export(ode_string_to_function)
