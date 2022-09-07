@@ -1,44 +1,49 @@
 ---
-title: "README"
+title: "odejunkfitr"
 author: "ojcharles"
 date: "19/08/2022"
 output: github_document
 ---
 
-#odejunkfitr
+This R package helps with two key problems in viral kinetic modelling.
 
-A R package to assess whether your ode model is over-parameterised and will fit any number of distributions. 
+1 - Asseses whether your ode model is over-parameterised and will fit distributions spuriously.
 
-In viral kinetic modelling often there are two competing ideas. 1 - I care about uncovering specific mechanistic insights so  my model should represent the biology as accurately as possible. 2 - I can only measure 1 or two compartments, therefore my model should be as simple as possible to allow me to measure the single key parameter I care about.
+2 - Fits several viral kinetic models to nlmicr formatted viral load trajectory data, returning which is most parsimonious.
 
-This package helps you understand with tangible outcomes where your model lies on that spectrum. It does this by fitting against a number of datasets from simple probability distributions to real published viral kinetic data.
 
-The package will also fit your data against several previously published 2, 3 and 4 compartment models that prioritised brevity and identifieability of parameters.
+Viral kinetic models often must balance two ideas. It needs sufficient mechanisms to accurately reflect the biology, but also as only one or two compartments can be measured it needs to be sufficiently simple such that key parameters are identifiable. 
+
+This package helps you understand with tangible outcomes where your model lies on that spectrum.
+It will fit a model against spurious unique trajectories, if your model can fit them well that could be a problem.
+This also will fit your data against several previously published 2, 3 and 4 compartment models that prioritised brevity and identifieability of parameters. Perhaps one of these is better suited.
 
 install with:
 `remotes::install_github("ojcharles/does_my_ode_model_fit_junk")`
 
 
-## Core usage
 
 
-
-```{r setup, echo = F}
-## Load libraries
+```{r setup, message = F}
 library(ggplot2)
 library(nlmixr2)
 library(xpose)
 library(plotly)
 library(odejunkfitr)
-odejunkfitr::load_examples()
+odejunkfitr::load_examples() # loads data and models
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-"
+)
 
 ```
 
 
-This package takes as input a nlmixr formatted model string.
+#### Define some viral load data, and a current model
 
 ```{r load_mod, echo=FALSE}
-model1_theo_sd = "function() {
+my_model = function() {
   ini({
     tka <- 0.45
     tcl <- log(c(0, 2.7, 100))
@@ -54,24 +59,15 @@ model1_theo_sd = "function() {
     v <- exp(tv + eta.v)
     linCmt() ~ add(add.sd)
   })
-}"
+}
 
-# convert to function
-ode_function = ode_string_to_function(model1_theo_sd)
-
-# check model compiles with nlmixr
-does_model_compile(ode_function)
+# example Human Cytomegalovirus untreated viral load trajectories
+# Ref: DOI: 10.3390/v13112292
+my_data = data2_cmv_untreated
 ```
 
 
-### fit model to nlmixr typical data
 
-
-```{r}
-fit = nlmixr(ode_function, data1_theo_sd, list(print=0), est="saem")
-
-print(paste0("fit AIC is:", fit$AIC))
-```
 
 
 ### how well does my model fit spurious "junk"?
@@ -80,22 +76,26 @@ If the model is capable of fitting all of these trajectories, then you should lo
 
 #### At the population level
 
-```{r}
-data_junk = read.csv("inst/junk.csv")
-fit = nlmixr(ode_function, data_junk, list(print=0), est="saem")
+```{r junk_pop, message = F, echo = F}
 
-plot(fit)
+fit = nlmixr(my_model, data3_junk, list(print=0), est="saem")
+
+# show only the visual predictive check
+plots = plot(fit)
+plots[28] 
 ```
 
-### visualise how well my model fits junk
+#### When fitted individually 
 
-```{r}
+Here we simulate a variable populations around each trajectory then fit in turn to a population of square waves, a population of sine waves etc.
+
+```{r junk_indiv, message =F}
 
 all_fits = data.frame()
-for(id in unique(data_junk$ID)){ # for each type of test data
+for(id in unique(data3_junk$ID)){ # for each type of test data
   
   # spoof a population
-  t = data_junk[data_junk$ID == id,]
+  t = data3_junk[data3_junk$ID == id,]
   df2 = t
   for(i in 1:8){
     t1 = t
@@ -105,7 +105,7 @@ for(id in unique(data_junk$ID)){ # for each type of test data
   }
   
   # get fit
-  fit = nlmixr(ode_function, df2, list(print=0), est="saem")
+  fit = nlmixr(my_model, df2, list(print=0), est="saem")
   fit$junk_id = id
   all_fits =  rbind(all_fits, fit)
 }
@@ -121,16 +121,18 @@ ggplot(all_fits) +
 ```
 
 
- ahh but the dynamics i care about are much faster / shorter!   Well then alter the junk data, they're all nicely scaled :)
+ ahh but the dynamics I care about are much faster / shorter!  
+ Well then alter the junk data, they're all nicely scaled :)
  
  
-```{r}
-data_junk$TIME = data_junk$TIME * 5 # 2 months now
+```{r junk_indiv_rescale, message =FALSE}
+# rescale x axis to be 2 months
+data3_junk$TIME = data3_junk$TIME * 5
 all_fits = data.frame()
-for(id in unique(data_junk$ID)){ # for each type of test data
+for(id in unique(data3_junk$ID)){ # for each type of test data
   
   # spoof a population
-  t = data_junk[data_junk$ID == id,]
+  t = data3_junk[data3_junk$ID == id,]
   df2 = t
   for(i in 1:8){
     t1 = t
@@ -140,7 +142,7 @@ for(id in unique(data_junk$ID)){ # for each type of test data
   }
   
   # get fit
-  fit = nlmixr(ode_function, df2, list(print=0), est="saem")
+  fit = nlmixr(my_model, df2, list(print=0), est="saem")
   fit$junk_id = id
   all_fits =  rbind(all_fits, fit)
 }
@@ -153,59 +155,75 @@ ggplot(all_fits) +
        colour = "simulated individual") +
   facet_wrap(~junk_id, scales = "free") 
 
-
+data3_junk$TIME = data3_junk$TIME / 5  #rescale back
 ```
 
 
 
-#### how can I rectify this?
 
-well why not try a simpler model?
+### Fitting multiple viral kinetic models to your data
 
-The below chunk is compute intensive and is skipped in this example, it's outcomes have been precomputed and are shown below.
+From the above code you now have a handle for how maleable your model is to various trajectories.
+If it has many compartment and many parameters chances are it fitted more than 1 or 2 well.
 
+
+The following chunks will outline an automated approach to finding the most parsimonious model to fit your viral trajectories. It will retusn information on the AIC (lower is better) as well as the RSE% of estimates for population parameters (above 50% and parameters are considered unidentifiable)
+
+let's plot the example viral load trajectories.
+
+```{r plot_data}
+ggplot(my_data) +
+  geom_line(aes(x = TIME, y = DV, colour = as.factor(ID))) +
+  labs(title = "Human Cytomegalovirus untreated viral load trajectories following BMT", 
+       colour = "Event ID", 
+       y = "Log10 CMV VL IU/mL", 
+       x = "Days since transplant")
+```
+
+
+#### Fit of example model to data
+
+```{r fit_1, message=F}
+fit = nlmixr(my_model, my_data, list(print=0), est="saem")
+fit$parFixedDf
+print(paste0("fit AIC is:", fit$AIC))
+```
+
+
+#### Automated approach to model picking
+
+The following function is quite compute intensive, pre-computed results are shown in this notebook.
+- It will run through all the viral kinetic models we ave encoded, currently 9.
+- Each model has a number of flaviours, where we have fitted various parameters
+- There are currently 24 models
+- For each model, we attempt num_fit_attempts , attempts at fitting with random initial pop parameters, and random model seed.
+- We found this works well on a machine with at least 16 modern threads
 
 ```{r, eval=F}
-
-# load model building functions
-source(system.file("viral_models.r", package = "odejunkfitr"))
-
-# load the modelling options to run
-model_handler = read.csv(system.file("all_vk_models.csv", package = "odejunkfitr"))
-model_handler$shortname = ""
-
-model_handler$AIC =0
-for(i in 1:nrow(model_handler)){
-  # slightly verbose here as we want to scale
-  #model_name = "SMEIMCs9"
-  model_name = model_handler[i,1]
-  model_handler$shortname[i] = paste0(model_handler[i,2:6],collapse = "")
-  
-  model_function = get(model_name)
-  model_string = model_function(model_handler[i,2],
-                                model_handler[i,3],
-                                model_handler[i,4],
-                                model_handler[i,5],
-                                model_handler[i,6])
-  ode_function = ode_string_to_function(model_string)
-  fit = suppressWarnings(suppressMessages(
-    nlmixr(ode_function,
-               data2_cmv_untreated,
-               list(print=0), est="saem")
-  ))
-  #print(paste0("AIC:", fit$AIC, " - Model:", model_name, " - Fixed vector:", paste0(model_handler[i,2:6],collapse = "")))
-  model_handler$AIC[i] = round(fit$AIC,2)
-}
-rm("fit")
-
+# This function
+df_many_models = odejunkfitr::fit_many_vk_models(vl_data = my_data,
+                                                 num_fit_attempts = 5)
+df_many_models
 
 ```
 
 
 ```{r}
 # precomputed AIC comparison
-df = read.csv(system.file("all_vk_models_precomputed.csv", package = "odejunkfitr"))
-df
+df_many_models = read.csv(system.file("all_vk_models_precomputed.csv", package = "odejunkfitr"))
+df_many_models
 
 ```
+
+
+In this example we can see that the models encoded within the odejunkfitr package are more optimal by AIC and result in similarly low maximum RSE% of parameters.
+
+
+Now you have assessed:
+- How well your model fits spurious trajectories, hopefully not too well.
+- Whether simple 2,3,4 compartment models are able to reproduce the complex dynamics in your viral load data.
+
+
+Hopefully this starts you off on a good footing for further model exploration! :)
+
 
