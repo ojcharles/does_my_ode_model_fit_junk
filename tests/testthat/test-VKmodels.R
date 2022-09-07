@@ -119,4 +119,12 @@ test_that("model_VK_16", {
   expect_identical(length(fit$parFixedDf$Estimate) , as.integer(14))
 })
 
+test_that("model_VK_17", {
+  fit = suppressWarnings(nlmixr2::nlmixr(object = eval(parse( text = paste(text = m17_hepc1(F)))),
+                                         data2_cmv_untreated,
+                                         list(print=0), est = "saem"))
+  expect_identical(length(fit$parFixedDf$Estimate) , as.integer(14))
+})
+
+
 
