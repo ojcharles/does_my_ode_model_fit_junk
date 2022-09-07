@@ -998,3 +998,59 @@ m16_SARSTCLMwImmune = function(fix_E0 = T, ...){
 }
 
 
+
+#' m17_hepc1
+#' doi: 10.1128/AAC.02611-14
+#' @return VK nlmixr function string
+#' @export
+m17_hepc1 = function(fix_E0 = T, ...){
+  m = "function() {
+  ini({
+    tbeta = runif(1,-10,-2)
+    tvRo = runif(1,-6, -0)
+    tc = runif(1,-20, -2)
+    td = runif(1,-4,3)
+    tvEpsilon = runif(1,-4,3)
+    tT = runif(1,2,8)
+    tV = runif(1,0, 6)
+    tI = runif(1,0,6)
+
+    
+    eta.beta ~ 2
+    eta.vRo ~ 2
+    eta.c ~ 2
+    eta.d ~ 2
+    eta.vEpsilon ~ 2
+    eta.V ~ 1
+    eta.I ~ 1
+    eta.T ~ 1
+
+    add.sd = 10
+  })
+  model({
+    beta = exp(tbeta + eta.beta)
+    vRo = exp(tvRo + eta.vRo)
+    c = exp(tc + eta.c)
+    d = exp(td + eta.d)
+    vEpsilon = exp(tvEpsilon + eta.vEpsilon)
+    T = exp(tT + eta.T)
+    
+    V(0) = exp(tV + eta.V)
+    I(0) = exp(tI + eta.I)
+
+    d/dt(I) = beta * V * T - d * I
+    d/dt(V) = vRo * (1 - vEpsilon) * I - c * V
+    
+    VL = log(V)
+    VL ~ add(add.sd)
+  })
+}"
+  
+  # if(fix_E0){
+  #   m = gsub("tE0 = runif(1,-6,1)","",m,fixed = T)
+  #   m = gsub("eta.E0 ~ 2","",m,fixed = T)
+  #   m = gsub("E0 = exp(tE0 + eta.E0)","E0 = 0",m, fixed = T)
+  # }
+  return(m)
+}
+
