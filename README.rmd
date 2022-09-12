@@ -177,7 +177,8 @@ ggplot(my_data) +
   labs(title = "Human Cytomegalovirus untreated viral load trajectories following BMT", 
        colour = "Event ID", 
        y = "Log10 CMV VL IU/mL", 
-       x = "Days since transplant")
+       x = "Days since transplant") +
+  theme_classic()
 ```
 
 
@@ -211,6 +212,7 @@ df_many_models
 ```{r}
 # precomputed AIC comparison
 df_many_models = read.csv(system.file("all_vk_models_precomputed.csv", package = "odejunkfitr"))
+df_many_models[,9:11] = round(df_many_models[,9:11], 1)
 df_many_models
 
 ```

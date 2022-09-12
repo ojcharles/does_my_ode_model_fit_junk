@@ -7,7 +7,11 @@ This assesses how parsimoniously several viral kinetic models fit the data
 Returned are AIC values. As parameter identifiability is also crucial the max,
 mean, sd of the RSE\% for populations parameter estiamates are returned also.}
 \usage{
-fit_many_vk_models(vl_data = data2_cmv_untreated, num_fit_attempts = 5)
+fit_many_vk_models(
+  vl_data = data2_cmv_untreated,
+  num_fit_attempts = 5,
+  outfile = "t.csv"
+)
 }
 \arguments{
 \item{vl_data}{nlmixr formatted viral load data with or without drug admininstrations}
